@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import sql from "./config/db.js";
+
+dotenv.config();
 
 // Khởi tạo ứng dụng Express
 const app = express();
@@ -10,6 +13,31 @@ app.use(cors());
 
 // Sử dụng middleware để parse JSON từ request body
 app.use(express.json());
+
+// Tạo bảng creations trong database
+const createTable = async () => {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS creations (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        prompt TEXT NOT NULL,
+        content TEXT NOT NULL,
+        type TEXT NOT NULL,
+        publish BOOLEAN DEFAULT false,
+        likes TEXT[] DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+    console.log("Bảng creations đã được tạo thành công");
+  } catch (error) {
+    console.error("Lỗi khi tạo bảng creations:", error);
+  }
+};
+
+// Gọi hàm tạo bảng khi khởi động server
+createTable();
 
 // Route GET cho trang chủ
 app.get("/", (req, res) => {
