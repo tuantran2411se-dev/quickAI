@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import sql from "./config/db.js";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
 
 dotenv.config();
 
@@ -13,6 +14,9 @@ app.use(cors());
 
 // Sử dụng middleware để parse JSON từ request body
 app.use(express.json());
+
+// Áp dụng Clerk middleware để thêm đối tượng auth vào mỗi request
+app.use(clerkMiddleware());
 
 // Tạo bảng creations trong database
 const createTable = async () => {
@@ -39,10 +43,15 @@ const createTable = async () => {
 // Gọi hàm tạo bảng khi khởi động server
 createTable();
 
-// Route GET cho trang chủ
+// Route GET cho trang chủ (public route)
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
+
+// Áp dụng requireAuth để bảo vệ tất cả các routes phía dưới
+app.use(requireAuth());
+
+// Tất cả các routes được định nghĩa sau đây sẽ yêu cầu xác thực
 
 // Cấu hình cổng server từ biến môi trường hoặc mặc định là 3000
 const PORT = process.env.PORT || 3000;
